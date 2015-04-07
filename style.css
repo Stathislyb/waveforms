@@ -1,0 +1,40 @@
+body{
+background-color:#000;
+color:#fff;
+}
+
+a{
+color: #bcf;
+}
+
+.container{
+margin:0 auto;
+text-align:center;
+}
+
+#myCanvas{
+border:1px solid #d3d3d3;
+}
+#bufferCanvas{
+display:none;
+}
+
+.hidden{
+display:none;
+}
+
+.bold{
+font-weight: bold;
+}
+
+.pointer{
+cursor:pointer;
+}
+
+#signals{
+height:70%;
+overflow:auto;
+width: 20%;
+float: left;
+}
+
