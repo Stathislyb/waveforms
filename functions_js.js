@@ -9,22 +9,91 @@ $(function() {
 	var isDown = false;
 	var mouse_down_x;
 	var mouse_down_y;
+	
+	// prevent default right click behaviour in canvas
+	$("canvas").on("contextmenu",function(){
+       return false;
+    }); 
+	
 	$("#myCanvas").mousedown(function(event){
-		isDown = true;
-		mouse_down_x= event.pageX;
-		mouse_down_y= event.pageY;
+		switch (event.which) {
+		// for mouse 1 (left click), allow setting information marker 
+		case 1: 
+			draw_wave(wave_data);
+			x=event.pageX - $('#myCanvas').offset().left -100;
+			if(x > 0 && x < 650){
+				x_interval =650 / (max_limit - low_limit) ;
+				time_interval = wave_data['time_info']['duration'] / ( wave_data['time_info']['intervals'] -1);
+				timeframe =( ( Math.floor(x / x_interval) + low_limit ) * time_interval );
+				
+				var wave_val=0;
+				var current_time_temp=0;
+				
+				// get the canvas element
+				var canvas=document.getElementById("myCanvas");
+				var h = canvas.height;
+				var buffer = document.getElementById("bufferCanvas");
+				
+				// start from (15,36)
+				var x_canvas=15;
+				var y_canvas=36;
+				
+				// init. the drawing colours and fonts
+				var ctx=buffer.getContext("2d");
+				// init. stroke and fill colors : black
+				ctx.fillStyle = "#000";
+				ctx.strokeStyle = "#000";
+				// init. font style : Times New Roman, size : 12px
+				ctx.font="12px 'Times New Roman'";
+				
+		
+				$.each(window.selected_signals, function( i, index ) {
+						
+					$.each(window.wave_data[index], function( current_time, value ) {
+						if(value != -1){
+							wave_val = value;
+							current_time_temp=current_time;
+						}
+						if(current_time >= timeframe){
+							return false;
+						}
+					});
+					ctx.fillText("Value : "+wave_val,x_canvas,y_canvas);
+					y_canvas=y_canvas+40;
+				});
+				
+				ctx.beginPath();
+				ctx.strokeStyle = "#4af";
+				ctx.moveTo(x+100,0);
+				ctx.lineTo(x+100,h-10);
+				ctx.stroke();
+				ctx.closePath();
+				x_time=x- ((timeframe.toString().length / 2) +1)*5;
+				ctx.fillText(timeframe.toString()+wave_data['time_info']['timescale'],x_time+100,h-5);
+				
+				var ctx_canvas=canvas.getContext("2d");
+				ctx_canvas.drawImage(buffer, 0,0);
+				
+				// Recreate a jpg image of the canvas
+				var img = canvas.toDataURL("image/jpg");
+				document.getElementById("myimage").innerHTML='<img src="'+img+'"/>';
+				
+			}
+		 
+		
+		// for mouse 2 (right click), allow time scrolling 
+		case 3:
+			isDown = true;
+			mouse_down_x= event.pageX;
+			mouse_down_y= event.pageY;
+		} 
 	});
 	$(document).mouseup(function(event){
 		if(isDown){
-
 			isDown = false;
-	
 		}
 	});
 	
-	$( "#simulation_zoom" ).keyup(function() {
-		draw_wave(wave_data);
-	});
 	
 	$( "#myCanvas" ).mousemove(function( event ) {
 		if(isDown){
@@ -64,13 +133,13 @@ $(function() {
 			var h = canvas.height;
 			var buffer = document.getElementById("bufferCanvas");
 			
-			// start from (5,20)
+			// start from (15,36)
 			var x_canvas=15;
 			var y_canvas=36;
+			
 			// init. the drawing colours and fonts
 			var ctx=canvas.getContext("2d");
 			ctx.drawImage(buffer, 0,0);
-			
 			// init. stroke and fill colors : black
 			ctx.fillStyle = "#000";
 			ctx.strokeStyle = "#000";
@@ -89,6 +158,9 @@ $(function() {
 						return false;
 					}
 				});
+				ctx.fillStyle = "#ffa";
+				ctx.fillRect(x_canvas,y_canvas-10,80,10);
+				ctx.fillStyle = "#000";
 				ctx.fillText("Value : "+wave_val,x_canvas,y_canvas);
 				y_canvas=y_canvas+40;
 			});
@@ -103,6 +175,44 @@ $(function() {
 			ctx.fillText(timeframe.toString()+wave_data['time_info']['timescale'],x_time+100,h-5);
 			
 		}
+	});
+	
+	// When the mouse leaves the canvas, redraw it from the buffer 
+	$( "#myCanvas" ).mouseout(function( event ) {
+		var canvas=document.getElementById("myCanvas");
+		var buffer = document.getElementById("bufferCanvas");
+		var ctx=canvas.getContext("2d");
+		ctx.drawImage(buffer, 0,0);
+	});
+		
+		
+	// Slider's event listener
+	$("#slider_button").mousedown(function(event){
+		$("#slider_info").show(400);
+		$('body').on('mousemove', function(e) {
+			// Calculate the slider's value
+            offset=e.pageX - $('#slider_main').offset().left  - $('.slider_button').outerWidth()/2;
+			offset = Math.round(offset);
+			if(offset<0){ offset =1; }
+			if(offset>100){ offset =100; }
+			
+			// move the slider and the info box
+			$("#slider_button").css('left', offset+'px');
+			$("#slider_info").css('left', offset+'px');
+			
+			// update the time scale value and redraw the data
+			$("#simulation_zoom").val(offset);
+			draw_wave(wave_data);
+			
+			// update the info value of the info box
+			$("#slider_info").html(offset +'%');
+			
+			// prevent default behaviour of mouse drag
+			e.preventDefault();
+        }).on('mouseup', function() {
+			$('body').unbind( "mousemove");
+			$("#slider_info").hide(400);
+		});
 	});
 	
 });

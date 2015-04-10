@@ -38,3 +38,33 @@ width: 20%;
 float: left;
 }
 
+#canvas_div{
+width: 80%;
+float: left;
+}
+
+.slider_main{
+width: 120px;
+height: 10px;
+background-color: white;
+margin: 0 auto;
+}
+
+.slider_button{
+width: 20px;
+height: 20px;
+background-color: blue;
+top: -5px;
+left: 100;
+position: relative;
+}
+
+.slider_info{
+width: 20px;
+height: 20px;
+top: -5px;
+left: 100;
+position: relative;
+font-size: 12px;
+}
+
